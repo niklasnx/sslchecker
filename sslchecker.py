@@ -2,6 +2,7 @@ import ssl
 import socket
 import smtplib
 from datetime import datetime
+from config import SMTP_CONFIG
 
 def get_ssl_expiry(domain):
     try:
@@ -27,7 +28,7 @@ def load_domains(filename):
         print("Error: File domains.txt not found.")
         return []
 
-def send_email(report, sender_email, receiver_email, smtp_server, smtp_port, smtp_user, smtp_password):
+def send_email(report):
     subject = "Weekly SSL Report"
     
     html_body = """
@@ -58,10 +59,10 @@ def send_email(report, sender_email, receiver_email, smtp_server, smtp_port, smt
     message = f"Subject: {subject}\nMIME-Version: 1.0\nContent-Type: text/html\n\n{html_body}".encode("utf-8")
     
     try:
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
+        with smtplib.SMTP(SMTP_CONFIG['smtp_server'], SMTP_CONFIG['smtp_port']) as server:
             server.starttls()
-            server.login(smtp_user, smtp_password)
-            server.sendmail(sender_email, receiver_email, message)
+            server.login(SMTP_CONFIG['smtp_user'], SMTP_CONFIG['smtp_password'])
+            server.sendmail(SMTP_CONFIG['sender_email'], SMTP_CONFIG['receiver_email'], message)
         print("Status email sent successfully.")
     except Exception as e:
         print(f"Error sending email: {e}")
@@ -81,12 +82,4 @@ if __name__ == "__main__":
     domains = load_domains("domains.txt")
     if domains:
         report = check_domains(domains)
-        
-        sender_email = "your_email@example.com"
-        receiver_email = "recipient@example.com"
-        smtp_server = "your_smtp_server"
-        smtp_port = 587
-        smtp_user = "your_smtp_user"
-        smtp_password = "your_smtp_password"
-        
-        send_email(report, sender_email, receiver_email, smtp_server, smtp_port, smtp_user, smtp_password)
+        send_email(report)
